@@ -1,0 +1,23 @@
+version = 1
+revision = 3
+requires-python = ">=3.10"
+
+[[package]]
+name = "chess"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "python-chess" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "python-chess", specifier = ">=1.2.0" }]
+
+[[package]]
+name = "python-chess"
+version = "1.2.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/38/e4/a859584344a579ce3ce5d6db5a760f4ac180d49f2d2c19ca7ec099f72c89/python-chess-1.2.0.tar.gz", hash = "sha256:a6f93d7a2dca1d1b507ebea584c52150716f4dc65ee696266ff965975947bc2c", size = 143532, upload-time = "2020-10-22T11:41:20.31Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/4c/03/2eadd4320f082c92a487e1b44c0e2b6de92c68059472b9b08d1bce341840/python_chess-1.2.0-py3-none-any.whl", hash = "sha256:f58fbab5c8502c316a0fb062296a21f176f0a9b0d6572aa5353097b01cc622ab", size = 140387, upload-time = "2020-10-22T11:41:17.614Z" },
+]
