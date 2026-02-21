@@ -167,3 +167,71 @@ eg_king_table = [
 # Collection of raw tables for iteration
 mg_raw = [mg_pawn_table, mg_knight_table, mg_bishop_table, mg_rook_table, mg_queen_table, mg_king_table]
 eg_raw = [eg_pawn_table, eg_knight_table, eg_bishop_table, eg_rook_table, eg_queen_table, eg_king_table]
+
+# INITIALIZATION LOGIC
+# Final Lookups
+# mg_table[piece_type][square] -> (Material + PSQT)
+mg_table = [([0] * 64) for _ in range(12)]
+eg_table = [([0] * 64) for _ in range(12)]
+game_phase_inc = [0] * 12 # Map to 12 piece indices
+
+# By XOR ing the square get the flipped square (white square -> black square)
+def flip(sq):
+    return sq ^ 56
+
+def init_tables():
+    """Calculates the full tables (Material + PSQT) for White and Black."""
+    for p in range(PAWN, KING + 1): # 0 - 6
+        pc_white = 2 * p + WHITE
+        pc_black = 2 * p + BLACK
+
+        # Set Phase Increment
+        game_phase_inc[pc_white] = phase_inc[p]
+        game_phase_inc[pc_black] = phase_inc[p]
+
+        for sq in range(64):
+            # WHITE Calculation
+            mg_table[pc_white][sq] = mg_value[p] + mg_raw[p][sq]
+            eg_table[pc_white][sq] = eg_value[p] + eg_raw[p][sq]
+
+            # BLACK Calculation (Mirroring)
+            # Black's value at 'sq' is White's table value at 'flip(sq)'
+            mg_table[pc_black][sq] = mg_value[p] + mg_raw[p][flip(sq)]
+            eg_table[pc_black][sq] = eg_value[p] + eg_raw[p][flip(sq)]
+
+#TODO add Pawn structure, King safety, Mobility , Passed Pawns, Rook open file bonus, Bishop Pair, Space advantage, Threats
+def evaluate_board(board):
+    """
+    Calculates the static evaluation score for the current board position
+    Returns positive value for white advantage, negative value for black advantage
+    """
+    mg_score = 0
+    eg_score = 0
+    game_phase = 0
+
+    for square, piece in board.piece_map().items():
+        # calculate midgame_score, endgame_score, and game_phase
+        p_index = 2* (piece.piece_type-1) + piece.color
+        mg_val = mg_table[p_index][square]
+        eg_val = eg_table[p_index][square]
+        phase_val = game_phase_inc[p_index]
+
+        if piece.color == chess.WHITE:
+            mg_score += mg_val
+            eg_score += eg_val
+        else:
+            mg_score -= mg_val
+            eg_score -= eg_val
+
+        game_phase += phase_val
+
+    mg_phase = game_phase
+    if mg_phase > 24:
+        mg_phase = 24
+    eg_phase = 24 - mg_phase
+
+    score = (mg_score * mg_phase + eg_score * eg_phase) // 24
+
+    return score
+
+init_tables()
