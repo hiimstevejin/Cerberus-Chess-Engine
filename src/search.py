@@ -59,11 +59,18 @@ def negamax(board:chess.Board, alpha:int, beta:int, depth:int):
         return quiescence(board, alpha, beta), None
 
     moves = list(board.legal_moves)
-    moves.sort(key=lambda m: board.is_capture(m), reverse=True)
+    captures = []
+    quiet = []
+    for m in moves:
+      if board.is_capture(m):
+        captures.append(m)
+      else:
+        quiet.append(m)
 
+    ordered_moves = captures + quiet
     best_move = None
 
-    for move in moves:
+    for move in ordered_moves:
         board.push(move)
         child_score, _ = negamax(board, -beta, -alpha, depth-1)
         score = -child_score
@@ -75,8 +82,8 @@ def negamax(board:chess.Board, alpha:int, beta:int, depth:int):
             alpha = score
             best_move = move
 
-    if best_move is None and moves:
-           best_move = moves[0]
+    if best_move is None and ordered_moves:
+           best_move = ordered_moves[0]
 
     return alpha, best_move
 
