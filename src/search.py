@@ -2,139 +2,138 @@ import chess
 from src.evals import evaluate_board
 
 # for benchmarking purposes count node computation for search
-nodes_count = 0
+class Search:
+    def __init__(self):
+        # transposition table
 
-def get_nodes_count():
-    global nodes_count
-    count = nodes_count
-    nodes_count = 0
-    return count
+        self.nodes = 0
+        self.stop = False
+        self.start_time = 0
+        self.time_limit = 0
 
-def negamax(board:chess.Board, alpha:int, beta:int, depth:int):
-    """
-    Perform Negamax search with alpha-beta pruning.
+    def negamax(self, board:chess.Board, alpha:int, beta:int, depth:int, ply:int):
+        """
+        Perform Negamax search with alpha-beta pruning.
 
-    This function searches the game tree recursively to give a given depth and returns the best eval score from perspective of side to move
+        This function searches the game tree recursively to give a given depth and returns the best eval score from perspective of side to move
 
-    the implementation follows the Negamax formulation of Minimax:
-        score(position) = -score(opponent_position)
+        the implementation follows the Negamax formulation of Minimax:
+            score(position) = -score(opponent_position)
 
-    Alpha-beta pruning is used to eliminate branches that cannot affect the final decision, significantly reducing the number of nodes searched.
+        Alpha-beta pruning is used to eliminate branches that cannot affect the final decision, significantly reducing the number of nodes searched.
 
-    Args:
-        board (chess.Board):
-            Current chess position.
+        Args:
+            board (chess.Board):
+                Current chess position.
 
-        alpha (int):
-            Lower bound of the search window (best already guaranteed score)
+            alpha (int):
+                Lower bound of the search window (best already guaranteed score)
 
-        beta (int):
-            Upper bound of the search window (opponent's best alternative)
+            beta (int):
+                Upper bound of the search window (opponent's best alternative)
 
-        depth (int):
-            Remaining search depth
+            depth (int):
+                Remaining search depth
 
-    Returns:
-        int:
-            Evaluation score from the perspective of the side to move
-            Positive -> good for side to move
-            Negative -> bad for side to move
-        chess.Move:
-            Best move found
+        Returns:
+            int:
+                Evaluation score from the perspective of the side to move
+                Positive -> good for side to move
+                Negative -> bad for side to move
+            chess.Move:
+                Best move found
 
-    Search behavior:
-        - When depth reaches 0, switches to quiescence search to avoid the horizon effect
-        - Detects checkmate/stalemate if no legal moves exist
-        - Uses simple move ordering (captures first) to improve pruning
-    """
-    global nodes_count
-    nodes_count += 1
-    if board.is_game_over():
-        if board.is_checkmate():
-            return -100000 - depth, None
-        else:
-            return 0, None
+        Search behavior:
+            - When depth reaches 0, switches to quiescence search to avoid the horizon effect
+            - Detects checkmate/stalemate if no legal moves exist
+            - Uses simple move ordering (captures first) to improve pruning
+        """
+        self.nodes += 1
+        if board.is_game_over():
+            if board.is_checkmate():
+                return -100000 + ply, None
+            else:
+                return 0, None
 
-    if depth == 0:
-        return quiescence(board, alpha, beta), None
+        if depth == 0:
+            return self.quiescence(board, alpha, beta), None
 
-    moves = list(board.legal_moves)
-    captures = []
-    quiet = []
-    for m in moves:
-      if board.is_capture(m):
-        captures.append(m)
-      else:
-        quiet.append(m)
+        moves = list(board.legal_moves)
+        captures = []
+        quiet = []
+        for m in moves:
+          if board.is_capture(m):
+            captures.append(m)
+          else:
+            quiet.append(m)
 
-    ordered_moves = captures + quiet
-    best_move = None
+        ordered_moves = captures + quiet
+        best_move = None
 
-    for move in ordered_moves:
-        board.push(move)
-        child_score, _ = negamax(board, -beta, -alpha, depth-1)
-        score = -child_score
-        board.pop()
+        for move in ordered_moves:
+            board.push(move)
+            child_score, _ = self.negamax(board, -beta, -alpha, depth-1, ply + 1)
+            score = -child_score
+            board.pop()
 
-        if score >= beta:
-            return beta, move
-        if score > alpha:
-            alpha = score
-            best_move = move
+            if score >= beta:
+                return beta, move
+            if score > alpha:
+                alpha = score
+                best_move = move
 
-    if best_move is None and ordered_moves:
-           best_move = ordered_moves[0]
+        if best_move is None and ordered_moves:
+              best_move = ordered_moves[0]
 
-    return alpha, best_move
+        return alpha, best_move
 
-def quiescence(board, alpha, beta):
-    """
-    Perform quiescence search to stabilize tactical positions.
+    def quiescence(self, board, alpha, beta):
+        """
+        Perform quiescence search to stabilize tactical positions.
 
-    Quiescence search extends evaluation beyond the normal depth limit by exploring only critical moves (currently captures). This prevents the engine from evaluating unstable positions where an immediate capture or recapture would drastically change the score
+        Quiescence search extends evaluation beyond the normal depth limit by exploring only critical moves (currently captures). This prevents the engine from evaluating unstable positions where an immediate capture or recapture would drastically change the score
 
-    The function first evaluates the current position ("stand pat" score), then recursively searches all capture moves using the Negamax framework
+        The function first evaluates the current position ("stand pat" score), then recursively searches all capture moves using the Negamax framework
 
-    Args:
-        board (chess.Board):
-            Current chess position.
+        Args:
+            board (chess.Board):
+                Current chess position.
 
-        alpha (int):
-            Lower bound of the search window
+            alpha (int):
+                Lower bound of the search window
 
-        beta (int):
-            Upper bound of the search window
+            beta (int):
+                Upper bound of the search window
 
-    Returns:
-        int:
-            Stabilized evaluation score after resolving capture sequences.
+        Returns:
+            int:
+                Stabilized evaluation score after resolving capture sequences.
 
-    Methods:
-        1. Evaluate current position (stand-pat score)
-        2. Apply alpha-beta cuttoff if possible
-        3. Generate capture moves only
-        4. Recursively search captures until position is quiet
-    """
-    global nodes_count
-    nodes_count += 1
+        Methods:
+            1. Evaluate current position (stand-pat score)
+            2. Apply alpha-beta cuttoff if possible
+            3. Generate capture moves only
+            4. Recursively search captures until position is quiet
+        """
+        self.nodes += 1
 
-    base_score = evaluate_board(board)
-    stand_pat = base_score if board.turn == chess.WHITE else -base_score
+        base_score = evaluate_board(board)
+        stand_pat = base_score if board.turn == chess.WHITE else -base_score
 
-    if stand_pat >= beta:
-        return beta
-    if stand_pat > alpha:
-        alpha = stand_pat
-
-    moves = [m for m in board.legal_moves if board.is_capture(m)]
-
-    for move in moves:
-        board.push(move)
-        score = -quiescence(board, -beta, -alpha)
-        board.pop()
-
-        if score >= beta:
+        if stand_pat >= beta:
             return beta
-        if score > alpha:
-            alpha = score
-    return alpha
+        if stand_pat > alpha:
+            alpha = stand_pat
+
+        moves = [m for m in board.legal_moves if board.is_capture(m)]
+
+        for move in moves:
+            board.push(move)
+            score = -self.quiescence(board, -beta, -alpha)
+            board.pop()
+
+            if score >= beta:
+                return beta
+            if score > alpha:
+                alpha = score
+        return alpha
