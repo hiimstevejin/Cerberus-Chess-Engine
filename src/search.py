@@ -39,6 +39,8 @@ def negamax(board:chess.Board, alpha:int, beta:int, depth:int):
             Evaluation score from the perspective of the side to move
             Positive -> good for side to move
             Negative -> bad for side to move
+        chess.Move:
+            Best move found
 
     Search behavior:
         - When depth reaches 0, switches to quiescence search to avoid the horizon effect
@@ -47,31 +49,36 @@ def negamax(board:chess.Board, alpha:int, beta:int, depth:int):
     """
     global nodes_count
     nodes_count += 1
+    if board.is_game_over():
+        if board.is_checkmate():
+            return -100000 - depth, None
+        else:
+            return 0, None
 
     if depth == 0:
-      return quiescence(board, alpha, beta)
+        return quiescence(board, alpha, beta), None
 
     moves = list(board.legal_moves)
-
-    if not moves:
-        if board.is_check():
-            return -100000 + depth
-        else:
-          return 0
-
     moves.sort(key=lambda m: board.is_capture(m), reverse=True)
+
+    best_move = None
 
     for move in moves:
         board.push(move)
-        score = -negamax(board, -beta, -alpha, depth-1)
+        child_score, _ = negamax(board, -beta, -alpha, depth-1)
+        score = -child_score
         board.pop()
 
         if score >= beta:
-            return beta
+            return beta, move
         if score > alpha:
             alpha = score
+            best_move = move
 
-    return alpha
+    if best_move is None and moves:
+           best_move = moves[0]
+
+    return alpha, best_move
 
 def quiescence(board, alpha, beta):
     """
