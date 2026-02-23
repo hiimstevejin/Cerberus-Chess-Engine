@@ -283,6 +283,7 @@ def evaluate_board(board:chess.Board)->int:
     for square, piece in board.piece_map().items():
         # calculate midgame_score, endgame_score, and game_phase
         color_index = 0 if piece.color == chess.WHITE else 1
+        # p_index goes from 0 - 11 (WP, BP, ... WK, BK)
         p_index = 2* (piece.piece_type-1) + color_index
         mg_val = mg_table[p_index][square]
         eg_val = eg_table[p_index][square]
@@ -301,7 +302,8 @@ def evaluate_board(board:chess.Board)->int:
     if mg_phase > 24:
         mg_phase = 24
     eg_phase = 24 - mg_phase
-
+    # if it is endgame mg_score * mg_phase = 0
+    # otherwise eg_score * eg_phase = 0
     score = (mg_score * mg_phase + eg_score * eg_phase) // 24
 
     return score
