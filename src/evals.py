@@ -242,12 +242,12 @@ def init_tables():
 
         for sq in range(64):
             # WHITE Calculation
-            mg_table[pc_white][sq] = mg_value[p] + mg_raw[p][sq]
-            eg_table[pc_white][sq] = eg_value[p] + eg_raw[p][sq]
+            mg_table[pc_white][sq] = mg_value[p] + mg_raw[p][flip(sq)]
+            eg_table[pc_white][sq] = eg_value[p] + eg_raw[p][flip(sq)]
 
             # BLACK Calculation (Mirroring)
-            mg_table[pc_black][sq] = mg_value[p] + mg_raw[p][flip(sq)]
-            eg_table[pc_black][sq] = eg_value[p] + eg_raw[p][flip(sq)]
+            mg_table[pc_black][sq] = mg_value[p] + mg_raw[p][sq]
+            eg_table[pc_black][sq] = eg_value[p] + eg_raw[p][sq]
 
 #TODO
 #add Pawn structure, King safety, Mobility , Passed Pawns, Rook open file bonus, Bishop Pair, Space advantage, Threats
