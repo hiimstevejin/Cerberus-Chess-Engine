@@ -1,6 +1,6 @@
 import chess
 from src.evals import evaluate_board
-from src.search_copy import negamax, get_nodes_count
+from src.search import negamax, get_nodes_count
 import time
 
 DEPTH = 5
