@@ -1,7 +1,7 @@
 [project]
 name = "chess"
 version = "0.1.0"
-description = "Add your description here"
+description = "Light weight chess engine made with python-chess"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
