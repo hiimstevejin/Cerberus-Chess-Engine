@@ -59,14 +59,8 @@ class Search:
             return self.quiescence(board, alpha, beta), None
 
         moves = list(board.legal_moves)
-        captures = []
-        quiet = []
-        for m in moves:
-          if board.is_capture(m):
-            captures.append(m)
-          else:
-            quiet.append(m)
-
+        captures = [m for m in moves if board.is_capture(m)]
+        quiet = [m for m in moves if not board.is_capture(m)]
         ordered_moves = captures + quiet
         best_move = None
 
@@ -95,6 +89,9 @@ class Search:
 
         The function first evaluates the current position ("stand pat" score), then recursively searches all capture moves using the Negamax framework
 
+        The implementation follows the Quiescence search found in ChessProgramming Wiki
+        https://www.chessprogramming.org/Quiescence_Search
+
         Args:
             board (chess.Board):
                 Current chess position.
@@ -119,13 +116,19 @@ class Search:
 
         base_score = evaluate_board(board)
         stand_pat = base_score if board.turn == chess.WHITE else -base_score
+        best_value = stand_pat
 
         if stand_pat >= beta:
-            return beta
+            return stand_pat
+
         if stand_pat > alpha:
             alpha = stand_pat
 
-        moves = [m for m in board.legal_moves if board.is_capture(m)]
+        enemy_color = not board.turn
+        capture_mask = board.occupied_co[enemy_color]
+        if board.ep_square:
+            capture_mask |= (1 << board.ep_square)
+        moves = board.generate_legal_moves(chess.BB_ALL, capture_mask)
 
         for move in moves:
             board.push(move)
@@ -134,6 +137,8 @@ class Search:
 
             if score >= beta:
                 return beta
+            if score > best_value:
+                best_value = score
             if score > alpha:
                 alpha = score
-        return alpha
+        return best_value
