@@ -1,9 +1,9 @@
 import chess
 from src.evals import evaluate_board
-from src.search import negamax, get_nodes_count
+from src.search import Search
 import time
 
-DEPTH = 5
+DEPTH = 4
 MATE_SCORE = 90000
 
 
@@ -17,6 +17,7 @@ def test(name, condition):
 # STARTING POSITION TEST
 #
 board = chess.Board()
+search = Search()
 score = evaluate_board(board)
 test("Start position eval == 0", score == 0)
 
@@ -42,7 +43,7 @@ test("Black queen removed -> big white advantage", score > 800)
 # Mate in 1 test
 #
 board = chess.Board("7k/5K2/6Q1/8/8/8/8/8 w - - 0 1")
-score = negamax(board, -100000, 100000, DEPTH)
+score,_ = search.negamax(board, -100000, 100000, DEPTH, 0)
 test("Mate in 1 detected", score > MATE_SCORE - 2000)
 
 
@@ -50,7 +51,7 @@ test("Mate in 1 detected", score > MATE_SCORE - 2000)
 # Stalemate test
 #
 board = chess.Board("7k/5K2/6Q1/8/8/8/8/8 b - - 1 1")
-score = negamax(board, -100000, 100000, 2)
+score,_ = search.negamax(board, -100000, 100000, DEPTH, 0)
 test("Stalemate near 0", abs(score) < 50)
 
 
@@ -60,9 +61,8 @@ test("Stalemate near 0", abs(score) < 50)
 board = chess.Board()
 
 t0 = time.time()
-negamax(board, -100000, 100000, 5)
+score, _ = search.negamax(board, -100000, 100000, DEPTH, 0)
 t1 = time.time()
-nodes = get_nodes_count()
 
-print("Depth 5 time:", round(t1 - t0, 3), "seconds")
-print("number of nodes:", nodes)
+print(f"Depth {DEPTH} time:", round(t1 - t0, 3), "seconds")
+print("number of nodes:", search.nodes)
