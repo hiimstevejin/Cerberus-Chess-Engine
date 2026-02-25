@@ -3,10 +3,22 @@ from src.evals import evaluate_board
 from src.tt import TT
 import time
 
-# for benchmarking purposes count node computation for search
 class Search:
     def __init__(self):
-        # transposition table
+        """
+        Initialize the search engine with necessary data structures.
+
+        Attributes:
+            tt (Transposition Table): table for caching search results.
+            nodes (int): counter for number of nodes visited during search.
+            stop_flag (bool): Flag to signal immediate search termination ex) time up.
+            start_time (float): Time when the current search started.
+            time_limit (list): Killer Move heuristic table [depth][2 moves].
+            killers (list): Killer Move heuristic table [depth][2 moves].
+                            Scores moves that caused a beta-cutoff at a given ply.
+            history (list): History heuristic table [from_square][to_square].
+                            Scores moves based on how often they cause cutoffs globally.
+        """
         self.tt = TT()
         self.nodes = 0
         self.stop_flag = False
@@ -16,6 +28,20 @@ class Search:
         self.history = [[0]*64 for _ in range(64)]
 
     def start_search(self, board, time_limit=5.0):
+        """
+        Begin the Iterative Deepening Depth-First Search
+
+        This function repeatedly calls negamax with increasing depth limits until the time limit is reached or the maximum depth is exhausted.
+        It prints UCI-compatible 'info' strings to report progress.
+
+        Args:
+            board (chess.Board): The current board position to search.
+            time_limit (float): The maximum time allowed for the search in seconds.
+
+        Returns:
+            chess.Move: The best move found within the time limit.
+                        Returns None if no move is found ex) immediate termination on checkmate or stalemate.
+        """
         self.stop_flag = False
         self.nodes = 0
         self.start_time = time.time()
@@ -222,6 +248,14 @@ class Search:
         return best_value
 
     def check_time(self):
+        """
+        Check if the allocated search time has expired.
+
+        If the time limit is exceeded, sets self.stop_flag to True to abort the search at the next convenient opportunity.
+
+        Returns:
+            bool: True if the time limit has been exceeded, False otherwise.
+        """
         if time.time() - self.start_time > self.time_limit:
             self.stop_flag = True
         return self.stop_flag
