@@ -1,3 +1,5 @@
+https://lichess.org/@/Cerberus_bot
+
 To run it with CPython
 
 ```
