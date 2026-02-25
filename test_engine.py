@@ -56,6 +56,13 @@ test("Stalemate near 0", abs(score) < 50)
 
 
 #
+# Iterative Deepening test 20 sec
+#
+board = chess.Board()
+best_move = search.start_search(board, time_limit=20)
+test("Iterative Deepening", best_move is not None)
+
+#
 # Depth 5 test
 #
 board = chess.Board()
