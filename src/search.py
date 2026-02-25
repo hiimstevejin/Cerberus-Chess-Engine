@@ -100,7 +100,7 @@ class Search:
             - Detects checkmate/stalemate if no legal moves exist
             - Uses simple move ordering (captures first) to improve pruning
         """
-        if self.nodes & 2047 == 0:
+        if self.nodes & 2047 == 0: # same as self.nodes % 2048
             self.check_time()
 
         if self.stop_flag:
@@ -108,7 +108,8 @@ class Search:
 
         self.nodes += 1
 
-        key = hash(board.fen())
+        #Zobrist hashing
+        key = board._transposition_key()
         tt_entry = self.tt.probe(key)
         tt_move = None
 
